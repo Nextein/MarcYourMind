@@ -4,17 +4,35 @@ import {
     useTheme,
     IconButton,
 } from "@mui/material";
-import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
+import { useState, useEffect } from "react";
 
-// import { doc, collection, getDocs, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-// import { db } from '../../../../firebase';
+import { doc, collection, getDocs, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
 
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { Flex, Text, useToast } from "@chakra-ui/react";
 
-export default function Cycles() {
+export default function CyclesUp() {
     const toast = useToast();
+    const [data, setData] = useState(initialData);
 
+    useEffect(() => {
+        async function fetchCollection(collectionName) {
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            const docs = [];
+            querySnapshot.forEach((doc) => {
+                docs.push({
+                    id: doc.id,
+                    ...doc.data(),
+                });
+            });
+            setData(docs);
+        }
+        fetchCollection('cycles_up');
+    }, []);
+
+    
+    
     function handleCellClick(value) {
         console.log("Copied to clipboard: ", value);
 
@@ -33,52 +51,37 @@ export default function Cycles() {
 
     const columns = [
         {
-            field: "id",
-            headerName: "ID",
-            width: 200,
-        },
-        {
-            field: "name",
-            headerName: "Name",
-            flex: 1, // Material UI allows to customize our column. We can set the width of the column by using the flex property to size of 1.
-        },
-        {
-            field: "quote",
-            headerName: "Payment",
-            width: 120,
-            renderCell: (params) => (
-                <Typography
-                    color="green"
-                >
-                    {params.row.quote}
-                </Typography>
-            ),
-        },
-        {
-            field: "email",
-            headerName: "Email",
+            field: "ticker",
+            headerName: "Ticker",
             flex: 1,
-            // render cell with onclick function
             renderCell: (params) => (
                 <Typography
+                    color="blue"
                     onClick={() => handleCellClick(params.value)}
                     sx={{
                         cursor: "pointer",
                     }}
                 >
-                    {params.value}
+                    {params.row.ticker}
                 </Typography>
             ),
         },
         {
-            field: "phone",
-            headerName: "Phone",
+            field: "date",
+            headerNme: "Date",
             flex: 1,
         },
         {
-            field: "pickupDate",
-            headerName: "Pickup Date",
-            width: 100,
+            field: "price",
+            headerName: "Price",
+            flex: 1,
+            renderCell: (params) => (
+                <Typography
+                    // color="blue"
+                >
+                    {params.row.price}
+                </Typography>
+            ),
         },
     ];
 
@@ -97,7 +100,8 @@ export default function Cycles() {
                 Uptrending
             </Text>
             <Box
-                height="75vh"
+                height="400px"
+                width="800px"
                 sx={{
                     "& .MuiDataGrid-root": {
                         border: "none",
@@ -130,7 +134,7 @@ export default function Cycles() {
             >
                 <DataGrid
                     checkboxSelection={false}
-                    rows={newOrders}
+                    rows={data}
                     columns={columns}
                     density="compact"
                     components={{
@@ -152,37 +156,23 @@ export default function Cycles() {
 }
 
 // Sample data
-const newOrders = [
+const initialData = [
     {
         id: 1,
-        name: "John Doe",
-        createdAt: new Date(),
-        quote: 100,
-        email: "mgtroja@fgmail.om",
-        phone: "1234567890",
-        origin: "New York",
-        destination: "Los Angeles",
-        pickupDate: "2022-12-31",
-        createdAt: new Date(),
+        ticker: "AAPL",
+        date: "2021-10-01",
+        price: 145.0,
     },
     {
         id: 2,
-        name: "Jane Doe",
-        createdAt: new Date(),
-        quote: 200,
-        email: "test@exmpale.com",
-        phone: "0987654321",
-        origin: "Los Angeles",
-        destination: "New York",
-        pickupDate: "2022-12-31",
-        createdAt: new Date(),
+        ticker: "GOOGL",
+        date: "2021-10-01",
+        price: 2800.0,
     },
     {
         id: 3,
-        name: "John Smith",
-        quote: 300,
-        email: "Test@gmail.com",
-        phone: "1234567890",
-        pickupDate: "2022-12-31",
+        ticker: "AMZN",
+        date: "2021-10-01",
+        price: 3500.0,
     },
 ];

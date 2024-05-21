@@ -1,3 +1,5 @@
+import utils
+
 def greenCandle(self, data, i=-1) -> bool:
         """ Green Candle """
         return data.iloc[i]['Close'] > data.iloc[i]['Open']
@@ -132,6 +134,14 @@ def relativePositionOfCandles(data):
             print(f"Strategy FSM in unkown state: {state[i]}")
             exit()
     return state
+
+# Params
+ticker = 'BTCUSDT'
+interval = '1h'
+lookback = 150
+
+# Read data
+data = utils.get_current_data(ticker, interval, lookback)
 
 # Apply the indicator
 states = relativePositionOfCandles(data)

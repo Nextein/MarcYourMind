@@ -1,29 +1,41 @@
 import utils
 import pandas as pd
+import numpy as np
 
-def greenCandle(self, data, i=-1) -> bool:
-        """ Green Candle """
-        return data.iloc[i]['Close'] > data.iloc[i]['Open']
+def in_order(data1, data2, is_value=0) -> bool:
+    """ Check if last candle in data1 is above last candle in data2"""
+    if not is_value:
+        return data1.iloc[-1] > data2.iloc[-1]
+    elif is_value == 1:
+        return data1 > data2.iloc[-1]
+    elif is_value == 2:
+        return data1.iloc[-1] > data2
+    elif is_value == 3:
+        return data1 > data2
 
-def redCandle(self, data, i=-1) -> bool:
+def greenCandle(data, i=-1) -> bool:
+    """ Green Candle """
+    return data.iloc[i]['Close'] > data.iloc[i]['Open']
+
+def redCandle(data, i=-1) -> bool:
     """ Red Candle """
     return data.iloc[i]['Close'] < data.iloc[i]['Open']
 
-def HH(self, data, i) -> bool:
+def HH(data, i) -> bool:
     """ Last 2 candles make a Higher High """
-    return self.in_order(data.iloc[i]['High'], data.iloc[i-1]['High'], is_value=3)
+    return in_order(data.iloc[i]['High'], data.iloc[i-1]['High'], is_value=3)
 
-def HL(self, data, i) -> bool:
+def HL(data, i) -> bool:
     """ Last 2 candles make a Higher Low """
-    return self.in_order(data.iloc[i]['Low'], data.iloc[i-1]['Low'], is_value=3)
+    return in_order(data.iloc[i]['Low'], data.iloc[i-1]['Low'], is_value=3)
 
-def LL(self, data, i) -> bool:
+def LL(data, i) -> bool:
     """ Last 2 candles make a Lower Low """
-    return self.in_order(data.iloc[i-1]['Low'], data.iloc[i]['Low'], is_value=3)
+    return in_order(data.iloc[i-1]['Low'], data.iloc[i]['Low'], is_value=3)
 
-def LH(self, data, i) -> bool:
+def LH(data, i) -> bool:
     """ Last 2 candles make a Lower High """
-    return self.in_order(data.iloc[i-1]['High'], data.iloc[i]['High'], is_value=3)
+    return in_order(data.iloc[i-1]['High'], data.iloc[i]['High'], is_value=3)
 
 def relativePositionOfCandles(data):
     """
@@ -136,39 +148,163 @@ def relativePositionOfCandles(data):
             exit()
     return state
 
+def relativeCandlesPhases(data):
+    """
+    Direction Phases based on relative candles.
+    args:
+        data
+    """
+    tags = relativePositionOfCandles(data)
+    phase = np.zeros(data.shape[0])
+    
+    phase[0] = 1 if greenCandle(data,0) else -1
+    for i in range(1, 3):
+        phase[i] = phase[i-1]
+
+    for i in range(3,data.shape[0]):
+        state2, state1, state0 = tags[i-2], tags[i-1], tags[i]
+        up_sequences = [
+            state1 == 'D'  and state0 == 'RU',
+            state1 == 'D'  and state0 == 'RU2',
+            state1 == 'RD' and state0 == 'RU',
+            state1 == 'RD' and state0 == 'RU2',
+            state1 == 'RD2' and state0 == 'RU',
+            state1 == 'RD2' and state0 == 'RU2',
+            state2 == 'D'  and state1 == 'I' and state0 == 'RU',
+            state2 == 'D'  and state1 == 'I' and state0 == 'RU2',
+            state2 == 'RD' and state1 == 'I' and state0 == 'RU',
+            state2 == 'RD' and state1 == 'I' and state0 == 'RU2',
+            state2 == 'RD2' and state1 == 'I' and state0 == 'RU',
+            state2 == 'RD2' and state1 == 'I' and state0 == 'RU2',
+            state2 == 'I' and state1 == 'I2' and state0 == 'RU',
+            state2 == 'I' and state1 == 'I2' and state0 == 'RU2',
+        ]
+
+        down_sequences = [
+            state1 == 'U'  and state0 == 'RD',
+            state1 == 'U'  and state0 == 'RD2',
+            state1 == 'RU' and state0 == 'RD',
+            state1 == 'RU' and state0 == 'RD2',
+            state1 == 'RU2' and state0 == 'RD2',
+            state1 == 'RU2' and state0 == 'RD',
+            state2 == 'U'  and state1 == 'I' and state0 == 'RD',
+            state2 == 'U'  and state1 == 'I' and state0 == 'RD2',
+            state2 == 'RU' and state1 == 'I' and state0 == 'RD',
+            state2 == 'RU' and state1 == 'I' and state0 == 'RD2',
+            state2 == 'RU2' and state1 == 'I' and state0 == 'RD',
+            state2 == 'RU2' and state1 == 'I' and state0 == 'RD2',
+            state2 == 'I' and state1 == 'I2' and state0 == 'RD',
+            state2 == 'I' and state1 == 'I2' and state0 == 'RD2',
+        ]
+
+        # Check phase up sequence:
+        if any(up_sequences):
+            phase[i] = 1
+            if state1 == 'I':
+                phase[i-1] = 1
+            if state1 == 'I2':
+                phase[i-1] = 1
+                phase[i-2] = 1
+            if state1 == 'RD':
+                phase[i-1] = 1
+            if state1 == 'RD2':
+                phase[i-1] = 1
+                phase[i-2] = 1
+        # Check phase down sequence:
+        elif any(down_sequences):
+            phase[i] = -1
+            if state1 == 'I':
+                phase[i-1] = -1
+            if state1 == 'I2':
+                phase[i-1] = -1
+                phase[i-2] = -1
+            if state1 == 'RU':
+                phase[i-1] = -1
+            if state1 == 'RU2':
+                phase[i-1] = -1
+                phase[i-2] = -1
+        else:
+            phase[i] = phase[i-1]
+    return phase
+
+
+def split_into_sets(data, states, value):
+    sets = []
+    current_set_indices = []
+    for i, state in enumerate(states):
+        if state == value:
+            current_set_indices.append(i)
+        else:
+            if current_set_indices:
+                sets.append(current_set_indices)
+                current_set_indices = []
+    # Append the last set if it exists
+    if current_set_indices:
+        sets.append(current_set_indices)
+    return sets
+
+
+
 # Params
 ticker = 'BTCUSDT'
 interval = '1h'
-lookback = 150
+lookback = 60
 
 # Read data
 data = utils.get_current_data(ticker, interval, lookback)
 
 # Apply the indicator
-states = relativePositionOfCandles(data)
+states = relativeCandlesPhases(data)
 
-# Find groups of up moves and down moves
-up_moves = []
-down_moves = []
-current_move = []
-for i, state in enumerate(states):
-    if state in ['U', 'RU', 'RU2', 'I', 'I2']:
-        current_move.append((i, state))
-    elif current_move:
-        if any(s in ['D', 'RD'] for _, s in current_move):
-            down_moves.append(current_move)
-        else:
-            up_moves.append(current_move)
-        current_move = []
+print("States:")
+print(states)
 
-# Select the last 2 sets of up moves and down moves
-last_two_up_moves = up_moves[-2:]
-last_two_down_moves = down_moves[-2:]
+# Split data into sets of state 1 and state -1
+sets_state_1 = split_into_sets(data, states, 1)
+sets_state_minus_1 = split_into_sets(data, states, -1)
 
-# Print the last 2 sets of up moves and down moves
-print("Last two sets of up moves:")
-for move in last_two_up_moves:
-    print(move)
-print("\nLast two sets of down moves:")
-for move in last_two_down_moves:
-    print(move)
+print("sets:")
+print("State 1:")
+print(sets_state_1[-2:])
+print('-'*20)
+print("State -1:")
+print(sets_state_minus_1[-2:])
+
+phases_1 = sets_state_1[-2:]
+phases_minus_1 = sets_state_minus_1[-2:]
+
+print("Corresponding data:")
+print("State 1:")
+print(data.iloc[phases_1[0][0]:phases_1[0][-1]+1])
+print(data.iloc[phases_1[1][0]:phases_1[1][-1]+1])
+print('-'*20)
+print("State -1:")
+print(data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1])
+print(data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1])
+
+if (data.iloc[phases_1[0][0]]['open time'] < data.iloc[phases_minus_1[0][0]]['open time']):
+    print("State 1 starts first.")
+    A = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
+    B = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
+    C = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
+    D = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
+else:
+    print("State -1 starts first.")
+    A = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
+    B = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
+    C = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
+    D = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
+
+# Check if CD has a higher high and a higher low than AB
+higher_high = max(C['High'].max(), D['High'].max()) > max(A['High'].max(), B['High'].max())
+higher_low = min(C['Low'].min(), D['Low'].min()) > min(A['Low'].min(), B['Low'].min())
+
+# Check if CD has a lower high and a lower low
+lower_high = max(C['High'].max(), D['High'].max()) < max(A['High'].max(), B['High'].max())
+lower_low = min(C['Low'].min(), D['Low'].min()) < min(A['Low'].min(), B['Low'].min())
+
+# Check if both conditions are met
+if higher_high and higher_low:
+    print("CD has a higher high and a higher low than AB.")
+if lower_high and lower_low:
+    print("CD has a lower high and a lower low than AB.")

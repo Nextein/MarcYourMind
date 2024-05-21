@@ -1,8 +1,7 @@
-import datetime
+from datetime import datetime
 import pandas as pd
 from binance.client import Client
 from firebase_admin import credentials, firestore, initialize_app
-
 
 cred = credentials.Certificate("./marcyourmind-01-firebase-adminsdk-mkura-11eed6cf26.json")
 initialize_app(cred)
@@ -92,3 +91,35 @@ def deleteField(collection, document, field):
   doc_ref.update({
     field: firestore.DELETE_FIELD
   })
+  
+def deleteCollection(collection):
+    # Get all documents from the collection
+    docs = db.collection(collection).stream()
+
+    # Delete each document
+    for doc in docs:
+        doc.reference.delete()
+
+    print("Collection ", collection, " has been cleared.")
+
+
+def get_current_date():
+    return datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+
+def backup_collection(source_collection, backup_collection):
+    # Get the current date
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Retrieve data from the source collection
+    source_data = db.collection(source_collection).get()
+    
+    # Create a new document in the backup collection with the current date as the document key
+    backup_doc_ref = db.collection(backup_collection).document(current_date)
+    
+    # Store the data from the source collection in the backup document
+    for doc in source_data:
+        backup_doc_ref.set({
+            doc.id: doc.to_dict()
+        }, merge=True)  # Use merge=True to merge the data with existing documents
+    
+    print("Backup completed for", current_date)

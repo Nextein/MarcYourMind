@@ -1,6 +1,6 @@
 import utils
-import pandas as pd
-import numpy as np
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
 
 def in_order(data1, data2, is_value=0) -> bool:
     """ Check if last candle in data1 is above last candle in data2"""

@@ -268,17 +268,17 @@ busd_symbols = [ticker['symbol'] for ticker in busd_tickers]
 # Params
 # ticker = 'BTCUSDT'
 
+# Backup collections and clear them
+utils.backup_collection("cycles_down", "cycles_down_history")
+utils.backup_collection("cycles_up", "cycles_up_history")
+
+utils.deleteCollection("cycles_down")
+utils.deleteCollection("cycles_up")
 
 interval = '1h'
 lookback = 60
 for ticker in btc_symbols+busd_symbols:
 
-    # Backup collections and clear them
-    utils.backup_collection("cycles_down", "cycles_down_history")
-    utils.backup_collection("cycles_up", "cycles_up_history")
-    
-    utils.deleteCollection("cycles_down")
-    utils.deleteCollection("cycles_up")
     
     try:
         print('-'*20)

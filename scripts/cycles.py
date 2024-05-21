@@ -1,6 +1,10 @@
 import utils
 import pandas as pd # type: ignore
 import numpy as np # type: ignore
+import binance
+
+
+
 
 def in_order(data1, data2, is_value=0) -> bool:
     """ Check if last candle in data1 is above last candle in data2"""
@@ -245,66 +249,100 @@ def split_into_sets(data, states, value):
 
 
 
+client = binance.client.Client()
+
+tickers = client.get_ticker()
+
+print("Starting scan...")
+btc_tickers = []
+busd_tickers = []
+for ticker in tickers:
+    if ticker['symbol'].endswith('BTC'):
+        btc_tickers.append(ticker)
+    if ticker['symbol'].endswith('BUSD'):
+        busd_tickers.append(ticker)
+
+btc_tickers = sorted(btc_tickers, key=lambda k: float(k['priceChangePercent']))
+busd_tickers = sorted(busd_tickers, key=lambda k: float(k['priceChangePercent']))
+
+btc_symbols = [ticker['symbol'] for ticker in btc_tickers]
+busd_symbols = [ticker['symbol'] for ticker in busd_tickers]
+
 # Params
 ticker = 'BTCUSDT'
 interval = '1h'
 lookback = 60
 
-# Read data
-data = utils.get_current_data(ticker, interval, lookback)
+downtrending = []
+uptrending = []
 
-# Apply the indicator
-states = relativeCandlesPhases(data)
+for ticker in btc_symbols+busd_symbols:
+    print('-'*20)
+    print(ticker)
+    # Read data
+    data = utils.get_current_data(ticker, interval, lookback)
 
-print("States:")
-print(states)
+    # Apply the indicator
+    states = relativeCandlesPhases(data)
 
-# Split data into sets of state 1 and state -1
-sets_state_1 = split_into_sets(data, states, 1)
-sets_state_minus_1 = split_into_sets(data, states, -1)
+    print("States:")
+    print(states)
 
-print("sets:")
-print("State 1:")
-print(sets_state_1[-2:])
-print('-'*20)
-print("State -1:")
-print(sets_state_minus_1[-2:])
+    # Split data into sets of state 1 and state -1
+    sets_state_1 = split_into_sets(data, states, 1)
+    sets_state_minus_1 = split_into_sets(data, states, -1)
 
-phases_1 = sets_state_1[-2:]
-phases_minus_1 = sets_state_minus_1[-2:]
+    print("sets:")
+    print("State 1:")
+    print(sets_state_1[-2:])
+    print('-'*20)
+    print("State -1:")
+    print(sets_state_minus_1[-2:])
 
-print("Corresponding data:")
-print("State 1:")
-print(data.iloc[phases_1[0][0]:phases_1[0][-1]+1])
-print(data.iloc[phases_1[1][0]:phases_1[1][-1]+1])
-print('-'*20)
-print("State -1:")
-print(data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1])
-print(data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1])
+    phases_1 = sets_state_1[-2:]
+    phases_minus_1 = sets_state_minus_1[-2:]
 
-if (data.iloc[phases_1[0][0]]['open time'] < data.iloc[phases_minus_1[0][0]]['open time']):
-    print("State 1 starts first.")
-    A = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
-    B = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
-    C = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
-    D = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
-else:
-    print("State -1 starts first.")
-    A = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
-    B = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
-    C = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
-    D = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
+    print("Corresponding data:")
+    print("State 1:")
+    print(data.iloc[phases_1[0][0]:phases_1[0][-1]+1])
+    print(data.iloc[phases_1[1][0]:phases_1[1][-1]+1])
+    print('-'*20)
+    print("State -1:")
+    print(data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1])
+    print(data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1])
 
-# Check if CD has a higher high and a higher low than AB
-higher_high = max(C['High'].max(), D['High'].max()) > max(A['High'].max(), B['High'].max())
-higher_low = min(C['Low'].min(), D['Low'].min()) > min(A['Low'].min(), B['Low'].min())
+    if (data.iloc[phases_1[0][0]]['open time'] < data.iloc[phases_minus_1[0][0]]['open time']):
+        print("State 1 starts first.")
+        A = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
+        B = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
+        C = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
+        D = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
+    else:
+        print("State -1 starts first.")
+        A = data.iloc[phases_minus_1[0][0]:phases_minus_1[0][-1]+1]
+        B = data.iloc[phases_1[0][0]:phases_1[0][-1]+1]
+        C = data.iloc[phases_minus_1[1][0]:phases_minus_1[1][-1]+1]
+        D = data.iloc[phases_1[1][0]:phases_1[1][-1]+1]
 
-# Check if CD has a lower high and a lower low
-lower_high = max(C['High'].max(), D['High'].max()) < max(A['High'].max(), B['High'].max())
-lower_low = min(C['Low'].min(), D['Low'].min()) < min(A['Low'].min(), B['Low'].min())
+    # Check if CD has a higher high and a higher low than AB
+    higher_high = max(C['High'].max(), D['High'].max()) > max(A['High'].max(), B['High'].max())
+    higher_low = min(C['Low'].min(), D['Low'].min()) > min(A['Low'].min(), B['Low'].min())
 
-# Check if both conditions are met
-if higher_high and higher_low:
-    print("CD has a higher high and a higher low than AB.")
-if lower_high and lower_low:
-    print("CD has a lower high and a lower low than AB.")
+    # Check if CD has a lower high and a lower low
+    lower_high = max(C['High'].max(), D['High'].max()) < max(A['High'].max(), B['High'].max())
+    lower_low = min(C['Low'].min(), D['Low'].min()) < min(A['Low'].min(), B['Low'].min())
+
+    # Check if both conditions are met
+    if higher_high and higher_low:
+        print("CD has a higher high and a higher low than AB.")
+        uptrending.append(ticker)
+    if lower_high and lower_low:
+        print("CD has a lower high and a lower low than AB.")
+        downtrending.append(ticker)
+        
+print("Uptrending:")
+print(uptrending)
+print("Downtrending:")
+print(downtrending)
+
+# Store in firestore

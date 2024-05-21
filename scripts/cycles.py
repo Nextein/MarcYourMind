@@ -1,3 +1,4 @@
+from datetime import time
 import utils
 import pandas as pd # type: ignore
 import numpy as np # type: ignore
@@ -277,9 +278,7 @@ utils.deleteCollection("cycles_up")
 
 interval = '1h'
 lookback = 60
-for ticker in btc_symbols+busd_symbols:
-
-    
+for ticker in busd_symbols+btc_symbols:
     try:
         print('-'*20)
         print(ticker)
@@ -355,6 +354,7 @@ for ticker in btc_symbols+busd_symbols:
             utils.createDocument('cycles_down', data=data)
     except Exception as e:
         print(f"Failed for {ticker}.")
+        time.sleep(30)
         continue
 
 print("Scan completed.")

@@ -1,5 +1,12 @@
+import datetime
 import pandas as pd
 from binance.client import Client
+from firebase_admin import credentials, firestore, initialize_app
+
+
+cred = credentials.Certificate("./marcyourmind-01-firebase-adminsdk-mkura-11eed6cf26.json")
+initialize_app(cred)
+db = firestore.client()
 
 def new_client(name=None):
     """Creates a new Binance client for api access to the account"""
@@ -58,3 +65,30 @@ def get_current_data(ticker, interval, lookback=None, start=None, verbose=False,
     if verbose:
         print(data.head(15))
     return data
+
+
+def createDocument(collection, document=None, data={}):
+    db.collection(collection).document(document).set(data)
+    
+
+def readDocument(collection, document):
+    doc = db.collection(collection).document(document).get()
+    return doc.to_dict()
+
+def readCollection(collection):
+    docs = db.collection(collection).where('lastClose', '>', 500).stream()
+    docs = [doc.to_dict() for doc in docs]
+    return docs
+        
+
+def updateDocument(collection, document, data):
+    doc_ref = db.collection(collection).document(document).update(data)
+
+def deleteDocument(collection, document):
+  db.collection(collection).document(document).delete()
+
+def deleteField(collection, document, field):
+  doc_ref = db.collection(collection).document(document)
+  doc_ref.update({
+    field: firestore.DELETE_FIELD
+  })

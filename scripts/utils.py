@@ -1,3 +1,6 @@
+import pandas as pd
+from binance.client import Client
+
 def new_client(name=None):
     """Creates a new Binance client for api access to the account"""
     # print("WARNING - Binance.new_client(name) loads basic account regardless of name given.")

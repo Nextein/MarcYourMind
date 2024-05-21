@@ -1,4 +1,5 @@
 import utils
+import pandas as pd
 
 def greenCandle(self, data, i=-1) -> bool:
         """ Green Candle """

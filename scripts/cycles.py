@@ -4,8 +4,6 @@ import numpy as np # type: ignore
 import binance
 
 
-
-
 def in_order(data1, data2, is_value=0) -> bool:
     """ Check if last candle in data1 is above last candle in data2"""
     if not is_value:

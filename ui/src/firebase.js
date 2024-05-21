@@ -3,6 +3,9 @@ import { initializeApp } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, collection, Timestamp } from "firebase/firestore";
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCOhoKYFD3zJ6tnrJ0anuf-OmYZZFV2qYA",
@@ -16,6 +19,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-export {
-    app
-};
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export function logout() { auth.signOut() };

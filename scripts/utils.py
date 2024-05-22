@@ -28,7 +28,7 @@ def get_current_data(ticker, interval, lookback=None, start=None, verbose=False,
     """
 
     if client is None:
-        client = new_client('test@account')
+        client = new_client()
 
     if lookback:
         if type(lookback) == int:
@@ -101,7 +101,6 @@ def deleteCollection(collection):
         doc.reference.delete()
 
     print("Collection ", collection, " has been cleared.")
-
 
 def get_current_date():
     return datetime.now().strftime("%Y-%m-%d_%H:%M:%S")

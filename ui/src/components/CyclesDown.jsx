@@ -12,7 +12,7 @@ import { db } from '../firebase';
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { Flex, Text, useToast } from "@chakra-ui/react";
 
-export default function CyclesUp() {
+export default function CyclesDown() {
     const toast = useToast();
     const [data, setData] = useState(initialData);
 
@@ -28,7 +28,7 @@ export default function CyclesUp() {
             });
             setData(docs);
         }
-        fetchCollection('cycles_up');
+        fetchCollection('cycles_down');
     }, []);
 
     
@@ -97,7 +97,7 @@ export default function CyclesUp() {
                 fontWeight="bold"
                 mb={5}
             >
-                Uptrending
+                Downtrending
             </Text>
             <Box
                 height="400px"

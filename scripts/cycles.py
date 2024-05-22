@@ -1,4 +1,4 @@
-from datetime import time
+import time
 import utils
 import pandas as pd # type: ignore
 import numpy as np # type: ignore
@@ -257,7 +257,7 @@ busd_tickers = []
 for ticker in tickers:
     if ticker['symbol'].endswith('BTC'):
         btc_tickers.append(ticker)
-    if ticker['symbol'].endswith('BUSD'):
+    if ticker['symbol'].endswith('USDC'):
         busd_tickers.append(ticker)
 
 btc_tickers = sorted(btc_tickers, key=lambda k: float(k['priceChangePercent']))
@@ -284,6 +284,8 @@ for ticker in busd_symbols+btc_symbols:
         print(ticker)
         # Read data
         data = utils.get_current_data(ticker, interval, lookback)
+        if data.shape[0] < 3:
+            continue
 
         # Apply the indicator
         states = relativeCandlesPhases(data)
@@ -354,7 +356,8 @@ for ticker in busd_symbols+btc_symbols:
             utils.createDocument('cycles_down', data=data)
     except Exception as e:
         print(f"Failed for {ticker}.")
-        time.sleep(30)
+        print(e)
+        # time.sleep(30)
         continue
 
 print("Scan completed.")

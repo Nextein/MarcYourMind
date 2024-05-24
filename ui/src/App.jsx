@@ -13,8 +13,12 @@ import CandlestickChart from './components/CandlestickChart';
 import { initializeApp } from "firebase/app";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
+import dotenv from 'dotenv';
+// Load environment variables from .env
+dotenv.config();
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDEaBrn0H_rAEzIo-PE5A78-4KOg03Jnz8",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "cripto-tech.firebaseapp.com",
   projectId: "cripto-tech",
   storageBucket: "cripto-tech.appspot.com",

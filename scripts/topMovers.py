@@ -1,89 +1,39 @@
-# =====================================================
-#               Author: Marc Goulding
-#               gouldingmarc@gmail.com
-# =====================================================
-
-"""
-Usage:
-    Check you are at the top level directory.
-    run:
-        > python -m plutus.top_movers_scanner
-
-"""
-
+import utils
 from time import time
 import numpy as np
-from pprint import pprint
-import pandas as pd
-
 import binance
 
 
-client = binance.client.Client()
+# Function to retrieve top movers
+def get_top_movers(tickers):
+    movers = sorted(tickers, key=lambda k: float(k['priceChangePercent']))
+    symbols = [ticker['symbol'] for ticker in movers]
+    top_longs = symbols[-20:][::-1]  # Top 20 longs, reversed for ascending order
+    top_shorts = symbols[:20]  # Top 20 shorts
+    return top_longs, top_shorts
 
+# Function to store data in Firestore
+def store_top_movers(collection_name, top_longs, top_shorts):
+    # Create a new document with current timestamp as the document ID
+    doc_ref = utils.db.collection(collection_name).document(str(int(time())))
+    doc_ref.set({
+        'top_longs': top_longs,
+        'top_shorts': top_shorts
+    })
+
+# Fetch tickers from Binance
+client = binance.client.Client()
 tickers = client.get_ticker()
 
-print("Starting scan...")
-btc_tickers = []
-busd_tickers = []
-for ticker in tickers:
-    if 'BTC' in ticker['symbol'] and not ticker['symbol'].startswith('BTC'):
-        btc_tickers.append(ticker)
-    if 'BUSD' in ticker['symbol'] and not ticker['symbol'].startswith('BUSD'):
-        busd_tickers.append(ticker)
+# Retrieve top movers for BTC and BUSD
+btc_tickers = [ticker for ticker in tickers if 'BTC' in ticker['symbol'] and not ticker['symbol'].startswith('BTC')]
+busd_tickers = [ticker for ticker in tickers if 'BUSD' in ticker['symbol'] and not ticker['symbol'].startswith('BUSD')]
 
-btc_tickers = sorted(btc_tickers, key=lambda k: float(k['priceChangePercent']))
-busd_tickers = sorted(busd_tickers, key=lambda k: float(k['priceChangePercent']))
+btc_longs, btc_shorts = get_top_movers(btc_tickers)
+busd_longs, busd_shorts = get_top_movers(busd_tickers)
 
-btc_symbols = [ticker['symbol'] for ticker in btc_tickers]
-busd_symbols = [ticker['symbol'] for ticker in busd_tickers]
+# Store data in Firestore
+store_top_movers('btc_movers', btc_longs, btc_shorts)
+store_top_movers('busd_movers', busd_longs, busd_shorts)
 
-print("\n(**BTC**) Top 20 longs:")
-for i in np.arange(-1, -21, -1):
-    print(btc_symbols[i], '\t\t', btc_tickers[i]['priceChangePercent'])
-print("\n(**BTC**) Top 20 shorts:")
-for i in range(20):
-    print(btc_symbols[i], '\t\t', btc_tickers[i]['priceChangePercent'])
-
-print("\n(**BUSD**) Top 20 longs:")
-for i in np.arange(-1, -21, -1):
-    print(busd_symbols[i], '\t\t', busd_tickers[i]['priceChangePercent'])
-print("\n(**BUSD**) Top 20 shorts:")
-for i in range(20):
-    print(busd_symbols[i], '\t\t', busd_tickers[i]['priceChangePercent'])
-
-# read csv
-btc_directory = "plutus/resources/logs/top_moversBTC.csv"
-busd_directory = "plutus/resources/logs/top_moversBUSD.csv"
-try:
-    btc_movers = pd.read_csv(btc_directory)
-    btc_index = btc_movers.iloc[-1]['index'] + 1
-except FileNotFoundError:
-    # Create pandas
-    btc_movers = pd.DataFrame([], columns=['index', 'time', '1long', '2long', '3long', '4long', '5long', '6long', '7long', '8long', '9long', '10long', '11long', '12long', '13long', '14long', '15long', '16long', '17long', '18long', '19long', '20long', '1short', '2short', '3short', '4short', '5short', '6short', '7short', '8short', '9short', '10short', '11short', '12short', '13short', '14short', '15short', '16short', '17short', '18short', '19short', '20short'])
-    btc_index = 0
-try:
-    busd_movers = pd.read_csv(busd_directory)
-    busd_index = busd_movers.iloc[-1]['index'] + 1
-except FileNotFoundError:
-    busd_movers = pd.DataFrame([], columns=['index', 'time', '1long', '2long', '3long', '4long', '5long', '6long', '7long', '8long', '9long', '10long', '11long', '12long', '13long', '14long', '15long', '16long', '17long', '18long', '19long', '20long', '1short', '2short', '3short', '4short', '5short', '6short', '7short', '8short', '9short', '10short', '11short', '12short', '13short', '14short', '15short', '16short', '17short', '18short', '19short', '20short'])
-    busd_index = 0
-
-# append row to csv
-toplongs = btc_symbols[-20:]
-toplongs.reverse()
-topshorts = btc_symbols[:20]
-new_entry = [btc_index, time()] + toplongs + topshorts
-btc_movers.loc[len(btc_movers)] = new_entry
-# save csv
-btc_movers.to_csv(btc_directory, index=False)
-print(f"Saved to {btc_directory}")
-
-toplongs = busd_symbols[-20:]
-toplongs.reverse()
-topshorts = busd_symbols[:20]
-new_entry = [busd_index, time()] + toplongs + topshorts
-busd_movers.loc[len(busd_movers)] = new_entry
-# save csv
-busd_movers.to_csv(busd_directory, index=False)
-print(f"Saved to {busd_directory}")
+print("Data stored successfully in Firestore.")

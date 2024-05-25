@@ -31,8 +31,8 @@ export default function CyclesUp() {
         fetchCollection('cycles_up');
     }, []);
 
-    
-    
+
+
     function handleCellClick(value) {
         console.log("Copied to clipboard: ", value);
 
@@ -60,6 +60,7 @@ export default function CyclesUp() {
                     onClick={() => handleCellClick(params.value)}
                     sx={{
                         cursor: "pointer",
+                        color: "white",
                     }}
                 >
                     {params.row.ticker}
@@ -67,17 +68,12 @@ export default function CyclesUp() {
             ),
         },
         {
-            field: "date",
-            headerNme: "Date",
-            flex: 1,
-        },
-        {
             field: "price",
             headerName: "Price",
             flex: 1,
             renderCell: (params) => (
                 <Typography
-                    // color="blue"
+                // color="blue"
                 >
                     {params.row.price}
                 </Typography>
@@ -103,33 +99,21 @@ export default function CyclesUp() {
                 height="400px"
                 width="40%vw"
                 sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
+                    '& .MuiDataGrid-root': {
+                        color: 'white',
                     },
-                    "& .MuiDataGrid-cell": {
-                        // borderBottom: "none",
+                    '& .MuiDataGrid-cell': {
+                        color: 'white',
                     },
-                    "& .name-column--cell": {
-                        color: "green",
-                        fontWeight: "bold",
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                        color: 'black',
                     },
-                    "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: "blue",
-                        borderBottom: "none",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        backgroundColor: "lightblue",
+                    '& .MuiDataGrid-toolbarContainer': {
+                        color: 'white',
                     },
                     "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        backgroundColor: "lightblue",
+                        color: 'white',
                     },
-                    '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
-                        color: `gray !important`,
-                    },
-                    "& .MuiCheckbox-root": {
-                        color: `lightgreen !important`,
-                    }
                 }}
             >
                 <DataGrid

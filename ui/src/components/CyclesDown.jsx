@@ -33,20 +33,9 @@ export default function CyclesDown() {
 
     
     
-    function handleCellClick(value) {
-        console.log("Copied to clipboard: ", value);
-
-        // Copy to clipboard
-        navigator.clipboard.writeText(value);
-
-        // Show toast
-        toast({
-            title: "Copied to clipboard",
-            description: value,
-            status: "success",
-            duration: 1500,
-            position: 'top',
-        });
+    function openLink(value) {
+        const url = "https://swap.bingx.com/es-es/ETH-USDT";
+        window.open(url, '_blank');
     }
 
     const columns = [
@@ -57,19 +46,15 @@ export default function CyclesDown() {
             renderCell: (params) => (
                 <Typography
                     color="blue"
-                    onClick={() => handleCellClick(params.value)}
+                    onClick={() => openLink(params.value)}
                     sx={{
                         cursor: "pointer",
+                        color: "white",
                     }}
                 >
                     {params.row.ticker}
                 </Typography>
             ),
-        },
-        {
-            field: "date",
-            headerNme: "Date",
-            flex: 1,
         },
         {
             field: "price",
@@ -102,34 +87,23 @@ export default function CyclesDown() {
             <Box
                 height="400px"
                 width="40%vw"
+                
                 sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
+                    '& .MuiDataGrid-root': {
+                        color: 'white',
                     },
-                    "& .MuiDataGrid-cell": {
-                        // borderBottom: "none",
+                    '& .MuiDataGrid-cell': {
+                        color: 'white',
                     },
-                    "& .name-column--cell": {
-                        color: "green",
-                        fontWeight: "bold",
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                        color: 'black',
                     },
-                    "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: "blue",
-                        borderBottom: "none",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        backgroundColor: "lightblue",
+                    '& .MuiDataGrid-toolbarContainer': {
+                        color: 'white',
                     },
                     "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        backgroundColor: "lightblue",
+                        color: 'white',
                     },
-                    '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
-                        color: `gray !important`,
-                    },
-                    "& .MuiCheckbox-root": {
-                        color: `lightgreen !important`,
-                    }
                 }}
             >
                 <DataGrid

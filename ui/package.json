@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.18",
     "@mui/x-data-grid": "^7.5.0",
+    "dotenv": "^16.4.5",
     "firebase": "^10.12.1",
     "framer-motion": "^11.2.5",
     "lightweight-charts": "^4.1.4",

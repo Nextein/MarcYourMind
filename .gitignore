@@ -21,3 +21,5 @@ yarn-error.log*
 debug.log
 
 marcyourmind-01-firebase-adminsdk-mkura-11eed6cf26.json
+
+.DS_Store
